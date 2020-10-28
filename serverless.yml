@@ -2,49 +2,56 @@ service: urlshortener
 
 frameworkVersion: '2'
 
-custom: 
+custom:
   stage: ${opt:stage, self:provider.stage}
-  devDynamoCapacity: 
+  devDynamoCapacity:
     ReadCapacityUnits: 1
     WriteCapacityUnits: 1
-  prodDynamoCapacity: 
+  prodDynamoCapacity:
     ReadCapacityUnits: 5
-    WriteCapacityUnits: 5 
- 
-provider: 
+    WriteCapacityUnits: 5
+provider:
   name: aws
   runtime: nodejs12.x
-  environment: 
+  environment:
     SLS_STAGE: ${self:custom.stage}
+    DDB_TABLE: {Ref: LinkDB}
   iamRoleStatements:
-    - Action: 
+    - Action:
         - dynamodb:GetItem
         - dynamodb:PutItem
-      Resource: "arn:aws:dynamodb:us-east-1:414416947237:table/${self:custom.stage}-shortened-urls"
+      Resource:
+        "Fn::Join":
+          - ""
+          -
+            - "arn:aws:dynamodb:"
+            - Ref: "AWS::Region"
+            - ":"
+            - Ref: "AWS::AccountId"
+            - ":table/"
+            - Ref: LinkDB
       Effect: Allow
 
-functions: 
+functions:
   main:
     handler: main/index.handler
     events:
       - http:
           path: /
           method: get
-
   create:
     handler: create/index.handler
     events:
       - http:
           path: /
           method: post
-
   redirect:
     handler: redirect/index.handler
-    events: 
+    events:
       - http:
-         path: /{slug}
-         method: get
-    
+          path: /{slug}
+          method: get
+
 resources:
   Resources:
     LinkDB:
@@ -57,4 +64,4 @@ resources:
           - AttributeName: slug
             KeyType: HASH
         ProvisionedThroughput: ${self:custom.${self:custom.stage}DynamoCapacity}
-        TableName: "${self:custom.stage}-shortened-urls"
+

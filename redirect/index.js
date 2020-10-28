@@ -1,8 +1,8 @@
 'use strict'
 
-const AWS = require('aws-sdk')  // typically included in the aws lambda runtime
+const AWS = require('aws-sdk')
 
-const tableName = `${process.env.SLS_STAGE}-shortened-urls`
+const tableName = process.env.DDB_TABLE
 const docClient = new AWS.DynamoDB.DocumentClient()
 
 module.exports.handler = (event, context, callback) => {
@@ -18,8 +18,8 @@ module.exports.handler = (event, context, callback) => {
   }, (err, data) => {
     console.log(data)
     if (err) {
-      console.log(err);
-      callback(err);
+      console.log(err)
+      return callback(err)
     }
     if (data.Item) {
       callback(
@@ -47,3 +47,4 @@ module.exports.handler = (event, context, callback) => {
     }
   })
 }
+
