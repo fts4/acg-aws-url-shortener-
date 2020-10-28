@@ -2,16 +2,25 @@ service: urlshortener
 
 frameworkVersion: '2'
 
+custom: 
+  stage: ${opt:stage, self:provider.stage}
+  devDynamoCapacity: 
+    ReadCapacityUnits: 1
+    WriteCapacityUnits: 1
+  prodDynamoCapacity: 
+    ReadCapacityUnits: 5
+    WriteCapacityUnits: 5 
+ 
 provider: 
   name: aws
   runtime: nodejs12.x
   environment: 
-    SLS_STAGE: ${opt:stage, self:provider.stage}
+    SLS_STAGE: ${self:custom.stage}
   iamRoleStatements:
     - Action: 
         - dynamodb:GetItem
         - dynamodb:PutItem
-      Resource: "arn:aws:dynamodb:us-east-1:414416947237:table/dev-shortened-urls"
+      Resource: "arn:aws:dynamodb:us-east-1:414416947237:table/${self:custom.stage}-shortened-urls"
       Effect: Allow
 
 functions: 
@@ -47,7 +56,5 @@ resources:
         KeySchema:
           - AttributeName: slug
             KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 2
-          WriteCapacityUnits: 2
-        TableName: "${opt:stage, self:provider.stage}-shortened-urls"
+        ProvisionedThroughput: ${self:custom.${self:custom.stage}DynamoCapacity}
+        TableName: "${self:custom.stage}-shortened-urls"
