@@ -64,4 +64,9 @@ resources:
           - AttributeName: slug
             KeyType: HASH
         ProvisionedThroughput: ${self:custom.${self:custom.stage}DynamoCapacity}
-
+    CustomDomainMap: 
+      Type: "AWS::ApiGateway::BasePathMapping"
+      Properties:
+        DomainName: urlshortener.cosimplify.com
+        Stage: ${self:custom.stage}
+        RestApiId: {Ref: ApiGatewayRestApi}
